@@ -1,0 +1,44 @@
+encryptionsalt: v1:mJPVvPW1bpM=:v1:BHft6lZ9vqa1zK/3:YH6koDAO4Dw6b7rkT1COJZdrV+ASuQ==
+config:
+  aws:profile: demo
+  aws:region: us-east-1
+  public_route_table_cidr: 0.0.0.0/0
+  pulumi_vpc_name: "pulumi_vpc"
+  vpc_cider_block: 10.0.0.0/16
+  internet_gateway_name: "pulumi_internet_gateway"
+  public_subnet_configs : [
+    {
+    "name": "public-subnet-1", 
+    "cidr_block": "10.0.0.0/24", 
+    "availability_zone": "us-east-1a"
+    },
+    {
+    "name": "public-subnet-2", 
+    "cidr_block": "10.0.1.0/24", 
+    "availability_zone": "us-east-1b"
+    },
+    {
+    "name": "public-subnet-3", 
+    "cidr_block": "10.0.2.0/24", 
+    "availability_zone": "us-east-1c"
+    }
+  ]
+  private_subnet_configs : [
+    {
+    "name": "private-subnet-1", 
+    "cidr_block": "10.0.3.0/24", 
+    "availability_zone": "us-east-1a"
+    },
+    {
+    "name": "private-subnet-2", 
+    "cidr_block": "10.0.4.0/24", 
+    "availability_zone": "us-east-1b"
+    },
+    {
+    "name": "private-subnet-3", 
+    "cidr_block": "10.0.5.0/24", 
+    "availability_zone": "us-east-1c"
+    }
+  ]
+  public_route_table: "public-route-table"
+  private_route_table: "private-route-table"
