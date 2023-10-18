@@ -9,11 +9,26 @@ import pulumi.log
 config = pulumi.Config()
 public_subnet_config =config.require_object('public_subnet_configs')
 private_subnet_config =config.require_object('private_subnet_configs')
+
 public_cidr_block =config.require('public_route_table_cidr')
 vpc_name = config.require('pulumi_vpc_name')
 gateway_name= config.require('internet_gateway_name')
 public_route_table= config.require('public_route_table')
 private_route_table= config.require('private_route_table')
+ami_id= config.require('ami_id')
+instanceType= config.require('instance_type')
+keyName= config.require('key_pair_name')
+ec2_name= config.require('EC2_Instance_Name')
+port1= config.require('port1')
+port2= config.require('port2')
+port3= config.require('port3')
+port4= config.require('port4')
+security_group_name= config.require('pulumi_security_group')
+
+availability_zones = aws.get_availability_zones()
+limited_availability_zones = availability_zones.names
+if len(availability_zones.names)>3:
+    limited_availability_zones = availability_zones.names[0:3]
 
 pulumi_vpc = aws.ec2.Vpc("main",
     cidr_block=config.get("vpc_cider_block"),
@@ -30,26 +45,28 @@ internet_gateway_attachment = aws.ec2.InternetGatewayAttachment("pulumi-igw-atta
     internet_gateway_id=internet_gateway.id)
 
 public_subnets = []
-for config in public_subnet_config:
-    subnet = aws.ec2.Subnet(config["name"],
+for i,publicConfig in enumerate(limited_availability_zones):
+    publicConfig = public_subnet_config[i]
+    subnet = aws.ec2.Subnet(publicConfig["name"],
         vpc_id=pulumi_vpc.id,
-        cidr_block=config["cidr_block"],
-        availability_zone=config["availability_zone"], 
+        cidr_block=publicConfig["cidr_block"],
+        availability_zone= limited_availability_zones[i],
         map_public_ip_on_launch=True, 
         tags={
-            "Name": config["name"],
+            "Name": publicConfig["name"],
         })
     public_subnets.append(subnet.id)
 
 private_subnets = []
-for config in private_subnet_config:
-    subnet = aws.ec2.Subnet(config["name"],
+for i,privateConfig in enumerate(limited_availability_zones):
+    privateConfig = private_subnet_config[i]
+    subnet = aws.ec2.Subnet(privateConfig["name"],
         vpc_id=pulumi_vpc.id,
-        cidr_block=config["cidr_block"],
-        availability_zone=config["availability_zone"],  
+        cidr_block=privateConfig["cidr_block"],
+        availability_zone= limited_availability_zones[i],  
         map_public_ip_on_launch=True,  
         tags={
-            "Name": config["name"],
+            "Name": privateConfig["name"],
         })
     private_subnets.append(subnet.id)
 
@@ -77,3 +94,62 @@ for i, private_subnet in enumerate(private_subnets):
     aws.ec2.RouteTableAssociation(f"private-subnet-association-{i}",
         subnet_id=private_subnet,
         route_table_id=private_route_table.id)
+    
+
+pulumi_security_group = aws.ec2.SecurityGroup(
+    security_group_name,
+    vpc_id= pulumi_vpc.id,  # Replace with the ID of your VPC
+    description="Pulumi Security Group",
+    ingress=[
+        {
+            "protocol": "tcp",
+            "from_port": port1,
+            "to_port": port1,
+            "cidr_blocks": ["0.0.0.0/0"],  # Adjust the CIDR block for your needs
+        },
+        {
+            "protocol": "tcp",
+            "from_port": port2,
+            "to_port": port2,
+            "cidr_blocks": ["0.0.0.0/0"],  # Adjust the CIDR block for your needs
+        },
+        {
+            "protocol": "tcp",
+            "from_port": port3,
+            "to_port": port3,
+            "cidr_blocks": ["0.0.0.0/0"],  # Adjust the CIDR block for your needs
+        },
+        {
+            "protocol": "tcp",
+            "from_port": port4,
+            "to_port": port4,
+            "cidr_blocks": ["0.0.0.0/0"],  # Adjust the CIDR block for your needs
+        },
+    ],
+    tags={
+        "Name": security_group_name,
+    },
+)
+
+ec2_instance = aws.ec2.Instance(
+    ec2_name,  # Provide a name for the instance
+    ami=ami_id,  # Replace with your desired AMI ID
+    instance_type=instanceType,  # Specify the instance type
+    subnet_id= public_subnets[0],  # Specify the subnet ID
+    vpc_security_group_ids=[pulumi_security_group.id],
+    associate_public_ip_address=True,
+    key_name=keyName,  # Specify the key pair for SSH access
+    root_block_device={
+        "volume_size": 25,
+        "volume_type": "gp2",
+        "delete_on_termination": True,
+    },
+    tags={
+        "Name": ec2_name,  # Add any tags you want
+    },
+)
+
+
+    
+
+pulumi.export("availability_zones", availability_zones.names)
