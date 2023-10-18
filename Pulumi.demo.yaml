@@ -1,7 +1,7 @@
 encryptionsalt: v1:Eq7CMHZv9FQ=:v1:oTpRQjy6BBCCug0L:O3SpM02PePpKtEwgrmO1ZsRP68NPfQ==
 config:
   aws:profile: demo
-  aws:region: us-east-1
+  aws:region:  us-east-1
   public_route_table_cidr: 0.0.0.0/0
   pulumi_vpc_name: "pulumi_vpc"
   vpc_cider_block: 10.0.0.0/16
