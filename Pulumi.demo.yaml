@@ -12,7 +12,7 @@ config:
   EC2_Instance_Name: "Pulumi EC2 Instance"
   port: 3000
   cidr_block_http: "0.0.0.0/0"
-  cidr_block_ssh: "0.0.0.0/0"
+  cidr_block_ssh: "73.218.147.89/32"
   cidr_block_application: "0.0.0.0/0"
   cidr_block_tcp: "0.0.0.0/0"
   pulumi_security_group_name: "Pulumi_Security_Group"
