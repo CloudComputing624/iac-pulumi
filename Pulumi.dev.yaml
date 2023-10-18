@@ -10,11 +10,13 @@ config:
   instance_type: "t2.micro"
   key_pair_name: "Webapp_keypair"
   EC2_Instance_Name: "Pulumi EC2 Instance"
-  pulumi_security_group: "pulumi_security_group"
-  port1: "22" 
-  port2: "80"
-  port3: "444"
-  port4: "3000"
+  port: 3000
+  cidr_block_http: "0.0.0.0/0"
+  cidr_block_ssh: "0.0.0.0/0"
+  cidr_block_application: "0.0.0.0/0"
+  cidr_block_tcp: "0.0.0.0/0"
+  pulumi_security_group_name: "Pulumi_Security_Group"
+
   public_subnet_configs : [
     {
     "name": "public-subnet-1", 

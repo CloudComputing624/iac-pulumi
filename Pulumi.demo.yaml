@@ -1,4 +1,4 @@
-encryptionsalt: v1:mJPVvPW1bpM=:v1:BHft6lZ9vqa1zK/3:YH6koDAO4Dw6b7rkT1COJZdrV+ASuQ==
+encryptionsalt: v1:Eq7CMHZv9FQ=:v1:oTpRQjy6BBCCug0L:O3SpM02PePpKtEwgrmO1ZsRP68NPfQ==
 config:
   aws:profile: demo
   aws:region:  us-east-1
@@ -6,6 +6,17 @@ config:
   pulumi_vpc_name: "pulumi_vpc"
   vpc_cider_block: 10.0.0.0/16
   internet_gateway_name: "pulumi_internet_gateway"
+  ami_id : "ami-016b24b067db7967c"
+  instance_type: "t2.micro"
+  key_pair_name: "Webapp_keypair"
+  EC2_Instance_Name: "Pulumi EC2 Instance"
+  port: 3000
+  cidr_block_http: "0.0.0.0/0"
+  cidr_block_ssh: "0.0.0.0/0"
+  cidr_block_application: "0.0.0.0/0"
+  cidr_block_tcp: "0.0.0.0/0"
+  pulumi_security_group_name: "Pulumi_Security_Group"
+
   public_subnet_configs : [
     {
     "name": "public-subnet-1", 

@@ -19,11 +19,12 @@ ami_id= config.require('ami_id')
 instanceType= config.require('instance_type')
 keyName= config.require('key_pair_name')
 ec2_name= config.require('EC2_Instance_Name')
-port1= config.require('port1')
-port2= config.require('port2')
-port3= config.require('port3')
-port4= config.require('port4')
-security_group_name= config.require('pulumi_security_group')
+port= config.require('port')
+cidr_block_http= config.require('cidr_block_http')
+cidr_block_ssh= config.require('cidr_block_ssh')
+cidr_block_aaplication= config.require('cidr_block_application')
+cidr_block_tcp= config.require('cidr_block_tcp')
+security_group_name= config.require('pulumi_security_group_name')
 
 availability_zones = aws.get_availability_zones()
 limited_availability_zones = availability_zones.names
@@ -103,27 +104,27 @@ pulumi_security_group = aws.ec2.SecurityGroup(
     ingress=[
         {
             "protocol": "tcp",
-            "from_port": port1,
-            "to_port": port1,
-            "cidr_blocks": ["0.0.0.0/0"],  # Adjust the CIDR block for your needs
+            "from_port": 22,
+            "to_port": 22,
+            "cidr_blocks": [cidr_block_ssh],  # Adjust the CIDR block for your needs
         },
         {
             "protocol": "tcp",
-            "from_port": port2,
-            "to_port": port2,
-            "cidr_blocks": ["0.0.0.0/0"],  # Adjust the CIDR block for your needs
+            "from_port": 80,
+            "to_port": 80,
+            "cidr_blocks": [cidr_block_http],  # Adjust the CIDR block for your needs
         },
         {
             "protocol": "tcp",
-            "from_port": port3,
-            "to_port": port3,
-            "cidr_blocks": ["0.0.0.0/0"],  # Adjust the CIDR block for your needs
+            "from_port": 443,
+            "to_port": 443,
+            "cidr_blocks": [cidr_block_tcp],  # Adjust the CIDR block for your needs
         },
         {
             "protocol": "tcp",
-            "from_port": port4,
-            "to_port": port4,
-            "cidr_blocks": ["0.0.0.0/0"],  # Adjust the CIDR block for your needs
+            "from_port": port,
+            "to_port": port,
+            "cidr_blocks": [cidr_block_aaplication],  # Adjust the CIDR block for your needs
         },
     ],
     tags={
