@@ -25,6 +25,25 @@ cidr_block_ssh= config.require('cidr_block_ssh')
 cidr_block_aaplication= config.require('cidr_block_application')
 cidr_block_tcp= config.require('cidr_block_tcp')
 security_group_name= config.require('pulumi_security_group_name')
+parameter_group_name = config.require('rds_parameter_group_name')
+family_group_name = config.require('rds_parameter_family')
+db_subnet_group_name = config.require('rds_db_subnet_group')
+db_security_group_name = config.require('rds_db_security_group_name')
+rds_Instance_Name = config.require('rds_Instance_Name')
+db_instance_identifier_name = config.require('db_instance_identifier')
+db_instance_class = config.require('instance_class')
+db_name = config.require('db_name')
+db_engine = config.require('db_engine')
+db_engine_version = config.require('db_engine_version')
+db_username = config.require('username')
+db_password = config.require('password')
+rds_storage_type = config.require('rds_storage_type')
+parameter_group_name_pa = config.require('parameter_group_name_pa')
+parameter_group_value = config.require('parameter_group_value')
+apply_method = config.require('apply_method')
+env_path = config.require('ENV_FILE_PATH')
+
+
 
 availability_zones = aws.get_availability_zones()
 limited_availability_zones = availability_zones.names
@@ -99,32 +118,40 @@ for i, private_subnet in enumerate(private_subnets):
 
 pulumi_security_group = aws.ec2.SecurityGroup(
     security_group_name,
-    vpc_id= pulumi_vpc.id,  # Replace with the ID of your VPC
+    vpc_id= pulumi_vpc.id,  
     description="Pulumi Security Group",
     ingress=[
         {
             "protocol": "tcp",
             "from_port": 22,
             "to_port": 22,
-            "cidr_blocks": [cidr_block_ssh],  # Adjust the CIDR block for your needs
+            "cidr_blocks": [cidr_block_ssh],  
         },
         {
             "protocol": "tcp",
             "from_port": 80,
             "to_port": 80,
-            "cidr_blocks": [cidr_block_http],  # Adjust the CIDR block for your needs
+            "cidr_blocks": [cidr_block_http],  
         },
         {
             "protocol": "tcp",
             "from_port": 443,
             "to_port": 443,
-            "cidr_blocks": [cidr_block_tcp],  # Adjust the CIDR block for your needs
+            "cidr_blocks": [cidr_block_tcp],  
         },
         {
             "protocol": "tcp",
             "from_port": port,
             "to_port": port,
-            "cidr_blocks": [cidr_block_aaplication],  # Adjust the CIDR block for your needs
+            "cidr_blocks": [cidr_block_aaplication],  
+        },
+    ],
+    egress=[
+        {
+        "protocol": "-1",
+        "fromPort": 0,
+        "toPort": 0,
+        "cidrBlocks": ["0.0.0.0/0"],
         },
     ],
     tags={
@@ -132,25 +159,108 @@ pulumi_security_group = aws.ec2.SecurityGroup(
     },
 )
 
+rds_Security_Group = aws.ec2.SecurityGroup(
+    db_security_group_name,
+    vpc_id= pulumi_vpc.id, 
+    description="RDS Security Group",
+    ingress=[
+        {
+            "protocol": "tcp",
+            "from_port": 3306,
+            "to_port": 3306,
+            "securityGroups": [pulumi_security_group.id],  
+        },
+    ],
+    tags={
+        "Name": db_security_group_name,
+    },
+)
+
+
+rds_parameter_group = aws.rds.ParameterGroup(
+    parameter_group_name,
+    family=family_group_name,
+    parameters=[
+        aws.rds.ParameterGroupParameterArgs(
+            name=parameter_group_name_pa,
+            value=parameter_group_value,
+            apply_method=apply_method
+        ),
+    ]
+    )
+
+
+rds_subnet_group = aws.rds.SubnetGroup(db_subnet_group_name,
+    subnet_ids = private_subnets,
+    tags={
+        "Name": db_subnet_group_name,
+    })
+
+
+pulumi_rds_instance = aws.rds.Instance(rds_Instance_Name,
+    allocated_storage=20,
+    db_name= db_name,
+    engine=db_engine,
+    engine_version= db_engine_version,
+    identifier = db_instance_identifier_name,
+    username=db_username,
+    password=db_password,
+    instance_class=db_instance_class,
+    parameter_group_name=rds_parameter_group.name,
+    vpc_security_group_ids=[rds_Security_Group.id],
+    db_subnet_group_name = rds_subnet_group.name,
+    skip_final_snapshot=True,
+    apply_immediately= True,
+    publicly_accessible=False,
+    multi_az = False,
+    storage_type = rds_storage_type,
+    tags={
+        "Name": rds_Instance_Name,  
+    },
+)
+rdsEndpoint = pulumi_rds_instance.endpoint
+#rdsEndpointOutput = pulumi.Output.create(rdsEndpoint, { "value" : rdsEndpoint })
+
+
+user_data_script = pulumi.Output.all(pulumi_rds_instance.endpoint).apply(lambda args: 
+f"""#!/bin/bash
+NEW_DB_USER={db_username}
+NEW_DB_PASSWORD={db_password}
+NEW_DB_HOST={args[0].split(":")[0]}
+NEW_DB_NAME={db_name}
+ENV_FILE_PATH={env_path}
+
+if [ -e "$ENV_FILE_PATH" ]; then
+sed -i -e "s/DB_HOST=.*/DB_HOST=$NEW_DB_HOST/" \
+-e "s/DB_USER=.*/DB_USER=$NEW_DB_USER/" \
+-e "s/DB_PASSWORD=.*/DB_PASSWORD=$NEW_DB_PASSWORD/" \
+-e "s/DB_NAME=.*/DB_NAME=$NEW_DB_NAME/" \
+"$ENV_FILE_PATH"
+else
+echo "$ENV_FILE_PATH not found. Make sure the .env file exists"
+fi"""
+)
+
 ec2_instance = aws.ec2.Instance(
-    ec2_name,  # Provide a name for the instance
-    ami=ami_id,  # Replace with your desired AMI ID
-    instance_type=instanceType,  # Specify the instance type
-    subnet_id= public_subnets[0],  # Specify the subnet ID
+    ec2_name,  
+    ami=ami_id,  
+    instance_type=instanceType, 
+    subnet_id= public_subnets[0],  
     vpc_security_group_ids=[pulumi_security_group.id],
     associate_public_ip_address=True,
-    key_name=keyName,  # Specify the key pair for SSH access
+    user_data= user_data_script,
+    user_data_replace_on_change=True,
+    key_name=keyName,  
     root_block_device={
         "volume_size": 25,
         "volume_type": "gp2",
         "delete_on_termination": True,
     },
     tags={
-        "Name": ec2_name,  # Add any tags you want
+        "Name": ec2_name,  
     },
 )
 
+pulumi.export("rds_endpoint", pulumi_rds_instance.endpoint)
+pulumi.export("EC2 Instance Public IP", ec2_instance.public_ip)
 
-    
-
-pulumi.export("availability_zones", availability_zones.names)

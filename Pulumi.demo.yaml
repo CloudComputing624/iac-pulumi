@@ -1,12 +1,12 @@
 encryptionsalt: v1:Eq7CMHZv9FQ=:v1:oTpRQjy6BBCCug0L:O3SpM02PePpKtEwgrmO1ZsRP68NPfQ==
 config:
   aws:profile: demo
-  aws:region:  us-west-1
+  aws:region: us-west-1
   public_route_table_cidr: 0.0.0.0/0
   pulumi_vpc_name: "pulumi_vpc"
   vpc_cider_block: 10.0.0.0/16
   internet_gateway_name: "pulumi_internet_gateway"
-  ami_id : "ami-0fce05363eb01d4a5"
+  ami_id : "ami-075298660510d80ed"
   instance_type: "t2.micro"
   key_pair_name: "Webapp_keypair"
   EC2_Instance_Name: "Pulumi EC2 Instance"
@@ -15,7 +15,24 @@ config:
   cidr_block_ssh: "73.218.147.89/32"
   cidr_block_application: "0.0.0.0/0"
   cidr_block_tcp: "0.0.0.0/0"
-  pulumi_security_group_name: "Pulumi_Security_Group"
+  pulumi_security_group_name: "Pulumi-Security-Group"
+  rds_parameter_group_name: "rds-parameter-group"
+  rds_parameter_family: "mariadb10.6"
+  rds_db_subnet_group : "database"
+  rds_db_security_group_name : "application-security-group"
+  rds_Instance_Name: "pulumi-rds"
+  db_instance_identifier: "csye6225"
+  instance_class: "db.t2.micro"
+  db_engine: "mariadb"
+  db_engine_version: "10.6"
+  username: "csye6225"
+  password: "password"
+  db_name: "csye6225"
+  rds_storage_type: "gp2"
+  parameter_group_name_pa: "max_user_connections"
+  parameter_group_value: "100"
+  apply_method: "pending-reboot"
+  ENV_FILE_PATH: "/opt/csye6225/webapp/.env"
 
   public_subnet_configs : [
     {
