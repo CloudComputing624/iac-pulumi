@@ -42,6 +42,14 @@ parameter_group_name_pa = config.require('parameter_group_name_pa')
 parameter_group_value = config.require('parameter_group_value')
 apply_method = config.require('apply_method')
 env_path = config.require('ENV_FILE_PATH')
+zone_ID = config.require('existing_hostedZone_ID')
+role_name = config.require('role_Name')
+resource_name = config.require('resource_name')
+policy_arn = config.require('policy_arn')
+instance_profile = config.require('instance_profile')
+a_record_name = config.require('a_record_name')
+record_type = config.require('record_type')
+record_ttl = config.require('record_ttl')
 
 
 
@@ -238,8 +246,45 @@ sed -i -e "s/DB_HOST=.*/DB_HOST=$NEW_DB_HOST/" \
 "$ENV_FILE_PATH"
 else
 echo "$ENV_FILE_PATH not found. Make sure the .env file exists"
-fi"""
+fi
+
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+    -a fetch-config \
+    -m ec2 \
+    -c file:/opt/csye6225/webapp/cloudwatch-config.json \
+    -s
+"""
 )
+
+
+role = aws.iam.Role(
+    role_name,
+    assume_role_policy="""{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {
+                    "Service": "ec2.amazonaws.com" 
+                },
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    }""",
+)
+
+role_policy_attachment = aws.iam.RolePolicyAttachment(
+    resource_name=resource_name,
+    role=role.name,
+    policy_arn=policy_arn,
+)
+
+cw_instance_profile = aws.iam.InstanceProfile(
+    instance_profile,
+    role=role.name,
+)
+
+
 
 ec2_instance = aws.ec2.Instance(
     ec2_name,  
@@ -250,7 +295,8 @@ ec2_instance = aws.ec2.Instance(
     associate_public_ip_address=True,
     user_data= user_data_script,
     user_data_replace_on_change=True,
-    key_name=keyName,  
+    key_name=keyName,
+    iam_instance_profile=cw_instance_profile.name,  
     root_block_device={
         "volume_size": 25,
         "volume_type": "gp2",
@@ -261,6 +307,18 @@ ec2_instance = aws.ec2.Instance(
     },
 )
 
+
+
+a_record = aws.route53.Record(
+    a_record_name,
+    zone_id=zone_ID,
+    name="",
+    type=record_type,
+    records=[ec2_instance.public_ip],
+    ttl=record_ttl,
+)
+
 pulumi.export("rds_endpoint", pulumi_rds_instance.endpoint)
 pulumi.export("EC2 Instance Public IP", ec2_instance.public_ip)
+pulumi.export("EC2 Instance Role Name ", role.name)
 

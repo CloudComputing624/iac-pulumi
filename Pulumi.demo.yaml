@@ -6,7 +6,7 @@ config:
   pulumi_vpc_name: "pulumi_vpc"
   vpc_cider_block: 10.0.0.0/16
   internet_gateway_name: "pulumi_internet_gateway"
-  ami_id : "ami-075298660510d80ed"
+  ami_id : "ami-0655c1b1efc2e576b"
   instance_type: "t2.micro"
   key_pair_name: "Webapp_keypair"
   EC2_Instance_Name: "Pulumi EC2 Instance"
@@ -15,11 +15,11 @@ config:
   cidr_block_ssh: "73.218.147.89/32"
   cidr_block_application: "0.0.0.0/0"
   cidr_block_tcp: "0.0.0.0/0"
-  pulumi_security_group_name: "Pulumi-Security-Group"
+  pulumi_security_group_name: "application-security-group"
   rds_parameter_group_name: "rds-parameter-group"
   rds_parameter_family: "mariadb10.6"
   rds_db_subnet_group : "database"
-  rds_db_security_group_name : "application-security-group"
+  rds_db_security_group_name : "rds-security-group"
   rds_Instance_Name: "pulumi-rds"
   db_instance_identifier: "csye6225"
   instance_class: "db.t2.micro"
@@ -33,6 +33,16 @@ config:
   parameter_group_value: "100"
   apply_method: "pending-reboot"
   ENV_FILE_PATH: "/opt/csye6225/webapp/.env"
+  existing_hostedZone_ID: "Z041606839O74ZGF1C6UY"
+  role_Name: "CloudWatch" 
+  resource_name: "CloudWatchServerPolicy"
+  policy_arn: "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+  instance_profile: "CloudWatchInstanceProfile"
+  a_record_name: "ARecord"
+  record_type: "A"
+  record_ttl: 60
+
+
 
   public_subnet_configs : [
     {
