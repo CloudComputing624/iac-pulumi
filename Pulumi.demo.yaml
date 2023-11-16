@@ -6,7 +6,7 @@ config:
   pulumi_vpc_name: "pulumi_vpc"
   vpc_cider_block: 10.0.0.0/16
   internet_gateway_name: "pulumi_internet_gateway"
-  ami_id : "ami-0655c1b1efc2e576b"
+  ami_id : "ami-0cb3cd9dfd746308e"
   instance_type: "t2.micro"
   key_pair_name: "Webapp_keypair"
   EC2_Instance_Name: "Pulumi EC2 Instance"
@@ -33,7 +33,7 @@ config:
   parameter_group_value: "100"
   apply_method: "pending-reboot"
   ENV_FILE_PATH: "/opt/csye6225/webapp/.env"
-  existing_hostedZone_ID: "Z041606839O74ZGF1C6UY"
+  existing_hostedZone_ID: "Z1030689153X5DU2ODCNX"
   role_Name: "CloudWatch" 
   resource_name: "CloudWatchServerPolicy"
   policy_arn: "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
@@ -41,6 +41,9 @@ config:
   a_record_name: "ARecord"
   record_type: "A"
   record_ttl: 60
+  lb_security_group_name: "Load_Balancer-SG"
+  launch_Template_Name: "asg_launch_config"
+  as_group_name: "Ec2-Auto-Scaling-Group"
 
 
 
