@@ -33,7 +33,7 @@ config:
   parameter_group_value: "100"
   apply_method: "pending-reboot"
   ENV_FILE_PATH: "/opt/csye6225/webapp/.env"
-  existing_hostedZone_ID: "Z1030689153X5DU2ODCNX"
+  existing_hostedZone_ID: "Z041606839O74ZGF1C6UY"
   role_Name: "CloudWatch" 
   resource_name: "CloudWatchServerPolicy"
   policy_arn: "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
