@@ -1,79 +1,67 @@
-encryptionsalt: v1:Eq7CMHZv9FQ=:v1:oTpRQjy6BBCCug0L:O3SpM02PePpKtEwgrmO1ZsRP68NPfQ==
+encryptionsalt: v1:dEexeCAowYE=:v1:z849ABfm7I4gwlvA:f/cW0L8mGuLN3jvWyGSMvsunWmIX1g==
 config:
   aws:profile: dev
   aws:region: us-west-1
-  public_route_table_cidr: 0.0.0.0/0
-  pulumi_vpc_name: "pulumi_vpc"
-  vpc_cider_block: 10.0.0.0/16
-  internet_gateway_name: "pulumi_internet_gateway"
-  ami_id : "ami-0cb3cd9dfd746308e"
-  instance_type: "t2.micro"
-  key_pair_name: "Webapp_keypair"
-  EC2_Instance_Name: "Pulumi EC2 Instance"
-  port: 3000
-  cidr_block_http: "0.0.0.0/0"
-  cidr_block_ssh: "73.218.147.89/32"
-  cidr_block_application: "0.0.0.0/0"
-  cidr_block_tcp: "0.0.0.0/0"
-  pulumi_security_group_name: "application-security-group"
-  rds_parameter_group_name: "rds-parameter-group"
-  rds_parameter_family: "mariadb10.6"
-  rds_db_subnet_group : "database"
-  rds_db_security_group_name : "rds-security-group"
-  rds_Instance_Name: "pulumi-rds"
-  db_instance_identifier: "csye6225"
-  instance_class: "db.t2.micro"
-  db_engine: "mariadb"
-  db_engine_version: "10.6"
-  username: "csye6225"
-  password: "password"
-  db_name: "csye6225"
-  rds_storage_type: "gp2"
-  parameter_group_name_pa: "max_user_connections"
-  parameter_group_value: "100"
-  apply_method: "pending-reboot"
-  ENV_FILE_PATH: "/opt/csye6225/webapp/.env"
-  existing_hostedZone_ID: "Z1030689153X5DU2ODCNX"
-  role_Name: "CloudWatch" 
-  resource_name: "CloudWatchServerPolicy"
-  policy_arn: "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-  instance_profile: "CloudWatchInstanceProfile"
-  a_record_name: "ARecord"
-  record_type: "A"
-  record_ttl: 60
-  lb_security_group_name: "Load_Balancer-SG"
-  launch_Template_Name: "asg_launch_config"
-  as_group_name: "Ec2-Auto-Scaling-Group"
-
-
-
-  public_subnet_configs : [
-    {
-    "name": "public-subnet-1", 
-    "cidr_block": "10.0.0.0/24"
-    },
-    {
-    "name": "public-subnet-2", 
-    "cidr_block": "10.0.1.0/24"
-    },
-    {
-    "name": "public-subnet-3", 
-    "cidr_block": "10.0.2.0/24"
-    }
-  ]
-  private_subnet_configs : [
-    {
-    "name": "private-subnet-1", 
-    "cidr_block": "10.0.3.0/24", 
-    },
-    {
-    "name": "private-subnet-2", 
-    "cidr_block": "10.0.4.0/24", 
-    },
-    {
-    "name": "private-subnet-3", 
-    "cidr_block": "10.0.5.0/24", 
-    }
-  ]
-  public_route_table: "public-route-table"
-  private_route_table: "private-route-table"
+  gcp:project: csye6225sindhura-dev
+  iac-pulumi:EC2_Instance_Name: Pulumi EC2 Instance
+  iac-pulumi:ENV_FILE_PATH: /opt/csye6225/webapp/.env
+  iac-pulumi:a_record_name: ARecord
+  iac-pulumi:ami_id: ami-0be4ea29177a42adc
+  iac-pulumi:apply_method: pending-reboot
+  iac-pulumi:as_group_name: Ec2-Auto-Scaling-Group
+  iac-pulumi:cidr_block_application: 0.0.0.0/0
+  iac-pulumi:cidr_block_http: 0.0.0.0/0
+  iac-pulumi:cidr_block_ssh: 73.218.147.89/32
+  iac-pulumi:cidr_block_tcp: 0.0.0.0/0
+  iac-pulumi:db_engine: mariadb
+  iac-pulumi:db_engine_version: "10.6"
+  iac-pulumi:db_instance_identifier: csye6225
+  iac-pulumi:db_name: csye6225
+  iac-pulumi:existing_hostedZone_ID: Z1030689153X5DU2ODCNX
+  iac-pulumi:instance_class: db.t2.micro
+  iac-pulumi:instance_profile: CloudWatchInstanceProfile
+  iac-pulumi:instance_type: t2.micro
+  iac-pulumi:internet_gateway_name: pulumi_internet_gateway
+  iac-pulumi:key_pair_name: Webapp_keypair
+  iac-pulumi:launch_Template_Name: asg_launch_config
+  iac-pulumi:lb_security_group_name: Load_Balancer-SG
+  iac-pulumi:parameter_group_name_pa: max_user_connections
+  iac-pulumi:mailgun_user_name: sindhura@csye6225sindhura.me
+  iac-pulumi:mailgun_password: smtp@1999
+  iac-pulumi:sns_region: us-west-1
+  iac-pulumi:parameter_group_value: "100"
+  iac-pulumi:password: password
+  iac-pulumi:policy_arn: arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+  iac-pulumi:port: "3000"
+  iac-pulumi:private_route_table: private-route-table
+  iac-pulumi:private_subnet_configs:
+    - cidr_block: 10.0.3.0/24
+      name: private-subnet-1
+    - cidr_block: 10.0.4.0/24
+      name: private-subnet-2
+    - cidr_block: 10.0.5.0/24
+      name: private-subnet-3
+  iac-pulumi:public_route_table: public-route-table
+  iac-pulumi:public_route_table_cidr: 0.0.0.0/0
+  iac-pulumi:public_subnet_configs:
+    - cidr_block: 10.0.0.0/24
+      name: public-subnet-1
+    - cidr_block: 10.0.1.0/24
+      name: public-subnet-2
+    - cidr_block: 10.0.2.0/24
+      name: public-subnet-3
+  iac-pulumi:pulumi_security_group_name: application-security-group
+  iac-pulumi:pulumi_vpc_name: pulumi_vpc
+  iac-pulumi:rds_Instance_Name: pulumi-rds
+  iac-pulumi:rds_db_security_group_name: rds-security-group
+  iac-pulumi:rds_db_subnet_group: database
+  iac-pulumi:rds_parameter_family: mariadb10.6
+  iac-pulumi:rds_parameter_group_name: rds-parameter-group
+  iac-pulumi:rds_storage_type: gp2
+  iac-pulumi:record_ttl: "60"
+  iac-pulumi:record_type: A
+  iac-pulumi:resource_name: CloudWatchServerPolicy
+  iac-pulumi:role_Name: CloudWatch
+  iac-pulumi:sns_role_name: SNS_Role
+  iac-pulumi:username: csye6225
+  iac-pulumi:vpc_cider_block: 10.0.0.0/16

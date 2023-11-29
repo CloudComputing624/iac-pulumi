@@ -2,6 +2,7 @@
 
 import pulumi
 from pulumi_aws import s3
+import pulumi_gcp as gcp
 import pulumi_aws as aws
 import pulumi.log
 import base64
@@ -54,6 +55,11 @@ record_ttl = config.require('record_ttl')
 lb_security_group_name = config.require('lb_security_group_name') 
 launchTemplateName = config.require('launch_Template_Name')
 auto_scaling_group_name = config.require('as_group_name')
+sns_role_name = config.require('sns_role_name')
+mailgun_username = config.require('mailgun_user_name')
+mailgun_password = config.require('mailgun_password')
+sns_region = config.require('sns_region')
+
 
 
 
@@ -251,27 +257,162 @@ pulumi_rds_instance = aws.rds.Instance(rds_Instance_Name,
     },
 )
 rdsEndpoint = pulumi_rds_instance.endpoint
-# pulumi_rds_instance = pulumi.Output.from_input(rdsEndpoint)
-#rdsEndpointOutput = pulumi.Output.create(rdsEndpoint, { "value" : rdsEndpoint })
+
+
+service_account = gcp.serviceaccount.Account("PulumiServiceAccount",
+    account_id="pulumiserviceid",
+    display_name="pulumiserviceaccount")
+
+
+service_account_key = gcp.serviceaccount.Key(
+    "pulumi-service-account-key",
+    service_account_id=service_account.account_id,
+)
+
+service_account_email = service_account.email.apply(lambda email: f"serviceAccount:{email}")
+
+storage_object_admin_role_binding = gcp.projects.IAMBinding(
+    "storage-object-creator-role-binding",
+    project="csye6225sindhura-dev",
+    role="roles/storage.objectAdmin",
+    members=[service_account_email],
+)
+
+
+gcp_bucket = gcp.storage.Bucket("newpulumibucket",
+    force_destroy=True,
+    location="US",
+    uniform_bucket_level_access=True,
+    public_access_prevention='enforced',
+    versioning={
+        "enabled": True,
+    },
+)
+
+sns_topic = aws.sns.Topic("New_Pulumi", delivery_policy="""{
+  "http": {
+    "defaultHealthyRetryPolicy": {
+      "minDelayTarget": 20,
+      "maxDelayTarget": 20,
+      "numRetries": 3,
+      "numMaxDelayRetries": 0,
+      "numNoDelayRetries": 0,
+      "numMinDelayRetries": 0,
+      "backoffFunction": "linear"
+    },
+    "disableSubscriptionOverrides": false,
+    "defaultThrottlePolicy": {
+      "maxReceivesPerSecond": 1
+    }
+  }
+}
+
+""")
+
+
+lambda_role = aws.iam.Role("New_Lambda_Role",
+    assume_role_policy="""{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {
+                    "Service": "lambda.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    }""",
+)
+
+
+policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+]
+
+for i, policy_arn in enumerate(policy_arns):
+    aws.iam.RolePolicyAttachment(f"policy-attachment-{i}",
+        role=lambda_role.name,
+        policy_arn=policy_arn,
+    )
+
+basic_dynamodb_table = aws.dynamodb.Table("Pulumi_DynamoDB",
+    attributes=[
+        aws.dynamodb.TableAttributeArgs(
+            name="id",
+            type="S",
+        ),
+    ],
+    hash_key="id",  # Hash key for the primary key
+    read_capacity=20,  # Read capacity units
+    write_capacity=20, 
+)
+
+lambda_function = aws.lambda_.Function(
+    "New_Pulumi_Lambda",
+    runtime="nodejs20.x",
+    handler="index.handler",
+    role=lambda_role.arn,
+    code=pulumi.FileArchive("./../serverless/serverless.zip"),  # Path to your Lambda function code
+    environment=aws.lambda_.FunctionEnvironmentArgs(
+        variables={
+            "GOOGLE_CREDENTIALS" : service_account_key.private_key,
+            "BUCKET_NAME": gcp_bucket.name,
+            "USER_ID": mailgun_username,
+            "PASSWORD":mailgun_password,
+            "DYNAMO_DB_TABLE": basic_dynamodb_table.name,
+            
+        },
+    ),
+    timeout=60,
+)
+
+sns_topic_subscription = aws.sns.TopicSubscription(
+    "New_Pulumi_Subscription",
+    protocol="lambda",
+    endpoint=lambda_function.arn,
+    topic= sns_topic.arn,
+)
+
+lambda_permission = aws.lambda_.Permission(
+    "MyLambdaPermission",
+    action="lambda:InvokeFunction",
+    function=lambda_function.name,
+    principal="sns.amazonaws.com",
+    source_arn=sns_topic.arn,
+)
+
+
+
+# my_bucket = gcp.storage.Bucket(
+#     "newpulumibucket",
+#     project="csye6225sindhura-dev",
+# )
+
 
 endpoint_value = rdsEndpoint.apply(lambda args: args[0].split(":")[0])
 
 
-user_data_script = pulumi_rds_instance.endpoint.apply(lambda endpoint:
-f"""#!/bin/bash
+base64_encoded_user_data = pulumi.Output.all(sns_topic.arn, pulumi_rds_instance.endpoint).apply(lambda args:
+base64.b64encode(f"""#!/bin/bash
 # Set your database configuration
 NEW_DB_NAME={db_name}
 NEW_DB_USER={db_username}
 NEW_DB_PASSWORD={db_password}
-NEW_DB_HOST={endpoint.split(":")[0]}
+NEW_DB_HOST={args[1].split(":")[0]}
+NEW_TOPIC_ARN={args[0]}
+NEW_REGION={sns_region}
 ENV_FILE_PATH={env_path}
  
 if [ -e "$ENV_FILE_PATH" ]; then
     sed -i -e "s/DB_HOST=.*/DB_HOST=$NEW_DB_HOST/" \
-           -e "s/DB_USER=.*/DB_USER=$NEW_DB_USER/" \
-           -e "s/DB_PASSWORD=.*/DB_PASSWORD=$NEW_DB_PASSWORD/" \
-           -e "s/DB_NAME=.*/DB_NAME=$NEW_DB_NAME/" \
-           "$ENV_FILE_PATH"
+    -e "s/DB_USER=.*/DB_USER=$NEW_DB_USER/" \
+    -e "s/DB_PASSWORD=.*/DB_PASSWORD=$NEW_DB_PASSWORD/" \
+    -e "s/DB_NAME=.*/DB_NAME=$NEW_DB_NAME/" \
+    -e "s/TOPIC_ARN=.*/TOPIC_ARN=$NEW_TOPIC_ARN/" \
+    -e "s/SNS_REGION=.*/SNS_REGION=$NEW_REGION/" \
+    "$ENV_FILE_PATH"
 else
     echo "$ENV_FILE_PATH not found. Make sure the .env file exists"
 fi
@@ -281,11 +422,11 @@ sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
     -c file:/opt/csye6225/webapp/cloudwatch-config.json \
     -s
 sudo systemctl restart amazon-cloudwatch-agent
-""")
+""".encode('utf-8')).decode('utf-8'))
  
-base64_encoded_user_data = pulumi.Output.all(user_data_script).apply(lambda values:
-    base64.b64encode(values[0].encode('utf-8')).decode('utf-8')
-)
+# base64_encoded_user_data = pulumi.Output.all(user_data_script).apply(lambda values:
+#     base64.b64encode(values[0].encode('utf-8')).decode('utf-8')
+# )
 
 
 
@@ -346,6 +487,12 @@ role_policy_attachment = aws.iam.RolePolicyAttachment(
     resource_name=resource_name,
     role=role.name,
     policy_arn=policy_arn,
+)
+
+sns_role_policy_attachment = aws.iam.RolePolicyAttachment(
+    resource_name="Amazon_SNS_Full_Policy",
+    role=role.name,
+    policy_arn="arn:aws:iam::aws:policy/AmazonSNSFullAccess",
 )
 
 cw_instance_profile = aws.iam.InstanceProfile(
@@ -531,6 +678,8 @@ a_record = aws.route53.Record(
         evaluate_target_health=True,
     )]
 )
+
+
 
 
 
