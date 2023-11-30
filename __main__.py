@@ -59,10 +59,9 @@ sns_role_name = config.require('sns_role_name')
 mailgun_username = config.require('mailgun_user_name')
 mailgun_password = config.require('mailgun_password')
 sns_region = config.require('sns_region')
-
-
-
-
+domain_name = config.require('domain_name')
+api_key = config.require('api_key')
+storage_object = config.require('storage_object')
 
 availability_zones = aws.get_availability_zones()
 limited_availability_zones = availability_zones.names
@@ -273,7 +272,7 @@ service_account_email = service_account.email.apply(lambda email: f"serviceAccou
 
 storage_object_admin_role_binding = gcp.projects.IAMBinding(
     "storage-object-creator-role-binding",
-    project="csye6225sindhura-dev",
+    project=storage_object,
     role="roles/storage.objectAdmin",
     members=[service_account_email],
 )
@@ -362,6 +361,9 @@ lambda_function = aws.lambda_.Function(
             "USER_ID": mailgun_username,
             "PASSWORD":mailgun_password,
             "DYNAMO_DB_TABLE": basic_dynamodb_table.name,
+            "DOMAIN_NAME":domain_name,
+            "API_KEY":api_key,
+
             
         },
     ),
