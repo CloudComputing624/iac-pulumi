@@ -6,7 +6,7 @@ config:
   iac-pulumi:EC2_Instance_Name: Pulumi EC2 Instance
   iac-pulumi:ENV_FILE_PATH: /opt/csye6225/webapp/.env
   iac-pulumi:a_record_name: ARecord
-  iac-pulumi:ami_id: ami-0be4ea29177a42adc
+  iac-pulumi:ami_id: ami-057342d4ab3ff22bc
   iac-pulumi:apply_method: pending-reboot
   iac-pulumi:as_group_name: Ec2-Auto-Scaling-Group
   iac-pulumi:cidr_block_application: 0.0.0.0/0
@@ -21,14 +21,19 @@ config:
   iac-pulumi:instance_class: db.t2.micro
   iac-pulumi:instance_profile: CloudWatchInstanceProfile
   iac-pulumi:instance_type: t2.micro
+  iac-pulumi:storage_object: csye6225sindhura-dev
+  iac-pulumi:fullAccessARN: arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+  iac-pulumi:ExecutionARN: arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   iac-pulumi:internet_gateway_name: pulumi_internet_gateway
   iac-pulumi:key_pair_name: Webapp_keypair
   iac-pulumi:launch_Template_Name: asg_launch_config
   iac-pulumi:lb_security_group_name: Load_Balancer-SG
   iac-pulumi:parameter_group_name_pa: max_user_connections
-  iac-pulumi:mailgun_user_name: sindhura@csye6225sindhura.me
+  iac-pulumi:mailgun_user_name: sindhurabandaru@csye6225sindhura.me
   iac-pulumi:mailgun_password: smtp@1999
   iac-pulumi:sns_region: us-west-1
+  iac-pulumi:domain_name: csye6225sindhura.me
+  iac-pulumi:api_key: 59f8fb1b7280e3164f499c2292407b11-30b58138-18eea0db
   iac-pulumi:parameter_group_value: "100"
   iac-pulumi:password: password
   iac-pulumi:policy_arn: arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
