@@ -363,8 +363,6 @@ lambda_function = aws.lambda_.Function(
             "DYNAMO_DB_TABLE": basic_dynamodb_table.name,
             "DOMAIN_NAME":domain_name,
             "API_KEY":api_key,
-
-            
         },
     ),
     timeout=60,
