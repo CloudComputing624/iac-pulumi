@@ -62,6 +62,7 @@ sns_region = config.require('sns_region')
 domain_name = config.require('domain_name')
 api_key = config.require('api_key')
 storage_object = config.require('storage_object')
+domainname = config.require('domain-name')
 
 availability_zones = aws.get_availability_zones()
 limited_availability_zones = availability_zones.names
@@ -140,12 +141,6 @@ load_balancer_security_group = aws.ec2.SecurityGroup(
     vpc_id= pulumi_vpc.id,  
     description="Load Balancer Security Group",
     ingress=[
-        {
-            "protocol": "tcp",
-            "from_port": 80,
-            "to_port": 80,
-            "cidr_blocks": [cidr_block_http],  
-        },
         {
             "protocol": "tcp",
             "from_port": 443,
@@ -523,7 +518,10 @@ cw_instance_profile = aws.iam.InstanceProfile(
 #     },
 # )
 
-
+ssl_certificate = aws.acm.get_certificate(
+    domain=domainname,
+    most_recent=True,
+    statuses=["ISSUED"])
 
 
 
@@ -552,12 +550,15 @@ load_balancer = aws.lb.LoadBalancer(
 
 listener = aws.lb.Listener("frontEndListener",
     load_balancer_arn=load_balancer.arn,
-    port=80,
-    protocol="HTTP",
+    port=443,
+    protocol="HTTPS",
+    ssl_policy="ELBSecurityPolicy-2016-08",
+    certificate_arn=ssl_certificate.arn,
     default_actions=[aws.lb.ListenerDefaultActionArgs(
         type="forward",
         target_group_arn=load_balancer_target_group.arn,
     )])
+
 
 ec2_launch_template = aws.ec2.LaunchTemplate(
     launchTemplateName,
@@ -590,8 +591,8 @@ ec2_launch_template = aws.ec2.LaunchTemplate(
     
 )
 
-auto_scaling_group = aws.autoscaling.Group(
-    auto_scaling_group_name,
+auto_scaling_group = aws.autoscaling.Group("asg",
+    name=auto_scaling_group_name,
     launch_template=aws.autoscaling.GroupLaunchTemplateArgs(
         id=ec2_launch_template.id,
         version="$Latest",

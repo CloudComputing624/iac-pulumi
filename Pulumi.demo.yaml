@@ -6,7 +6,7 @@ config:
   iac-pulumi:EC2_Instance_Name: Pulumi EC2 Instance
   iac-pulumi:ENV_FILE_PATH: /opt/csye6225/webapp/.env
   iac-pulumi:a_record_name: ARecord
-  iac-pulumi:ami_id: ami-057342d4ab3ff22bc
+  iac-pulumi:ami_id: ami-0aafdae616ee7c9b7
   iac-pulumi:apply_method: pending-reboot
   iac-pulumi:as_group_name: Ec2-Auto-Scaling-Group
   iac-pulumi:cidr_block_application: 0.0.0.0/0
@@ -37,6 +37,7 @@ config:
   iac-pulumi:parameter_group_value: "100"
   iac-pulumi:password: password
   iac-pulumi:policy_arn: arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+  iac-pulumi:domain-name: "demo.csye6225sindhura.me"
   iac-pulumi:port: "3000"
   iac-pulumi:private_route_table: private-route-table
   iac-pulumi:private_subnet_configs:
