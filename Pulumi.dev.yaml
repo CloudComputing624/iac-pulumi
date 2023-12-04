@@ -38,6 +38,7 @@ config:
   iac-pulumi:password: password
   iac-pulumi:policy_arn: arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
   iac-pulumi:port: "3000"
+  iac-pulumi:domain-name: "dev.csye6225sindhura.me"
   iac-pulumi:private_route_table: private-route-table
   iac-pulumi:private_subnet_configs:
     - cidr_block: 10.0.3.0/24

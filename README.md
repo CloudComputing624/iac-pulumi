@@ -12,6 +12,9 @@
 - aws configure --profile= demo 
 - Provide the access key ID,  Secret Access Key and the Region for the account created
 
+## AWS Command for Importing a Certificate
+ - aws acm import-certificate --profile demo --certificate fileb://demo_csye6225sindhura_me.crt --certificate-chain fileb://demo_csye6225sindhura_me.ca-bundle --private-key fileb://../private.key --region us-west-1
+
 ## Pulumi Creation
 - pulumi new
   
